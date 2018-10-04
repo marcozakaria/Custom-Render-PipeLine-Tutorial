@@ -6,6 +6,6 @@ public class MyPipelineAsset : RenderPipelineAsset
 {
     protected override IRenderPipeline InternalCreatePipeline()
     {
-        return null;
+        return new MyPipeline();
     }
 }
