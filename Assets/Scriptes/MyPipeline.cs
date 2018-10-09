@@ -24,7 +24,7 @@ public class MyPipeline : RenderPipeline
 
         CullResults cull = CullResults.Cull(ref cullingParameters, context);  //CullResults contains information about what is visible in the context
 
-                context.SetupCameraProperties(camera);
+        context.SetupCameraProperties(camera);
 
         var buffer = new CommandBuffer {
                  name = camera.name
@@ -38,7 +38,26 @@ public class MyPipeline : RenderPipeline
         context.ExecuteCommandBuffer(buffer);
         buffer.Release(); // release resorces used by buffer
 
+        DrawRendererSettings drawSettings = new DrawRendererSettings(
+                camera, new ShaderPassName("SRPDefaultUnlit")    // The camera is used to setup sorting and culling layers, while the pass controls which shader pass is used for rendering.
+            ) ;
+        drawSettings.sorting.flags = SortFlags.CommonOpaque;    //This instructs Unity to sort the renderers by distance from front to back
+
+        // delay drawing transparent renderers until after the skybox to avoid over draw of objects with skybox
+        FilterRenderersSettings filterSettings = new FilterRenderersSettings(true) {    // limit the draw before the skybox to only the opaque renderers.
+                renderQueueRange = RenderQueueRange.opaque   
+            };
+
+        context.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+
         context.DrawSkybox(camera);
+
+        // render transparent after skybox
+        // Trnsparent combines the color of what's being drawn with what has been drawn before,
+        drawSettings.sorting.flags = SortFlags.CommonTransparent;
+        filterSettings.renderQueueRange = RenderQueueRange.transparent;  
+        context.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+
         context.Submit();  // must call submit to make draw functions work
     }
 }
