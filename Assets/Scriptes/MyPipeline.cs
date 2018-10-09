@@ -4,6 +4,13 @@ using UnityEngine.Experimental.Rendering;
 
 public class MyPipeline : RenderPipeline
 {
+    CullResults cull;
+    CommandBuffer cameraBuffer = new CommandBuffer
+    {
+        name = "Render Camera"
+    }; // Command buffers hold list of rendering commands ("set render target, draw mesh, ...") to be excuted
+
+
     public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
         base.Render(renderContext, cameras);
@@ -22,21 +29,19 @@ public class MyPipeline : RenderPipeline
             return;
         }
 
-        CullResults cull = CullResults.Cull(ref cullingParameters, context);  //CullResults contains information about what is visible in the context
+        //CullResults contains information about what is visible in the context
+        CullResults.Cull(ref cullingParameters, context, ref cull);
 
         context.SetupCameraProperties(camera);
 
-        var buffer = new CommandBuffer {
-                 name = camera.name
-            }; // Command buffers hold list of rendering commands ("set render target, draw mesh, ...") to be excuted
-
+        
         CameraClearFlags clearFlags = camera.clearFlags;
-        buffer.ClearRenderTarget(
+        cameraBuffer.ClearRenderTarget(
                                  (clearFlags & CameraClearFlags.Depth) !=0,
                                  (clearFlags & CameraClearFlags.Color) != 0,
                                  camera.backgroundColor );
-        context.ExecuteCommandBuffer(buffer);
-        buffer.Release(); // release resorces used by buffer
+        context.ExecuteCommandBuffer(cameraBuffer);
+        cameraBuffer.Clear(); // Clear resorces,data used by buffer to be used in next frame
 
         DrawRendererSettings drawSettings = new DrawRendererSettings(
                 camera, new ShaderPassName("SRPDefaultUnlit")    // The camera is used to setup sorting and culling layers, while the pass controls which shader pass is used for rendering.
