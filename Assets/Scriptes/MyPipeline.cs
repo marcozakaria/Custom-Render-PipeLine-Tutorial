@@ -41,7 +41,7 @@ public class MyPipeline : RenderPipeline
                                  (clearFlags & CameraClearFlags.Color) != 0,
                                  camera.backgroundColor );
         context.ExecuteCommandBuffer(cameraBuffer);
-        cameraBuffer.Clear(); // Clear resorces,data used by buffer to be used in next frame
+        cameraBuffer.Clear(); // Clear resorces,data used by buffer to be used in next frame 
 
         DrawRendererSettings drawSettings = new DrawRendererSettings(
                 camera, new ShaderPassName("SRPDefaultUnlit")    // The camera is used to setup sorting and culling layers, while the pass controls which shader pass is used for rendering.
