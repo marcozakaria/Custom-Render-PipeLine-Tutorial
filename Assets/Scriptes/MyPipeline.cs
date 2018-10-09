@@ -16,9 +16,20 @@ public class MyPipeline : RenderPipeline
 
     void Render(ScriptableRenderContext context,Camera camera)
     {
-        context.SetupCameraProperties(camera);
+        ScriptableCullingParameters cullingParameters;
+        if(!CullResults.GetCullingParameters(camera, out cullingParameters))  // check if culling parameters are valid else return
+        {   
+            return;
+        }
 
-        var buffer = new CommandBuffer { name = camera.name }; // buffer holds list of graphics commands to be excuted
+        CullResults cull = CullResults.Cull(ref cullingParameters, context);  //CullResults contains information about what is visible in the context
+
+                context.SetupCameraProperties(camera);
+
+        var buffer = new CommandBuffer {
+                 name = camera.name
+            }; // Command buffers hold list of rendering commands ("set render target, draw mesh, ...") to be excuted
+
         CameraClearFlags clearFlags = camera.clearFlags;
         buffer.ClearRenderTarget(
                                  (clearFlags & CameraClearFlags.Depth) !=0,
