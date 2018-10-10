@@ -40,6 +40,9 @@ public class MyPipeline : RenderPipeline
                                  (clearFlags & CameraClearFlags.Depth) !=0,
                                  (clearFlags & CameraClearFlags.Color) != 0,
                                  camera.backgroundColor );
+
+        cameraBuffer.BeginSample("Render Camera sample"); // to improve readability of data shown by frame debugger
+
         context.ExecuteCommandBuffer(cameraBuffer);
         cameraBuffer.Clear(); // Clear resorces,data used by buffer to be used in next frame 
 
@@ -63,6 +66,23 @@ public class MyPipeline : RenderPipeline
         filterSettings.renderQueueRange = RenderQueueRange.transparent;  
         context.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
 
+        DrawDefaultPipeline(context, camera); // to render objects that uses difrent shaders
+
+        cameraBuffer.EndSample("Render Camera sample");
+        context.ExecuteCommandBuffer(cameraBuffer);
+        cameraBuffer.Clear(); // Clear resorces,data used by buffer to be used in next frame 
         context.Submit();  // must call submit to make draw functions work
     }
+
+    void DrawDefaultPipeline(ScriptableRenderContext context,Camera camera)
+    {
+        var drawSettings = new DrawRendererSettings(camera, new ShaderPassName("ForwardBase"));
+
+        var filterSettings = new FilterRenderersSettings(true);
+
+        context.DrawRenderers(
+            cull.visibleRenderers, ref drawSettings, filterSettings
+        );
+    }
+
 }
